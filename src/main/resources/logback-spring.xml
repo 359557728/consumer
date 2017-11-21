@@ -1,0 +1,29 @@
+<configuration>  
+    <!-- %m输出的信息,%p日志级别,%t线程名,%d日期,%c类的全名,,,, -->  
+    <appender name="standard" class="ch.qos.logback.core.ConsoleAppender">  
+        <encoder>  
+            <charset>UTF-8</charset>  
+            <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>  
+        </encoder>  
+    </appender>  
+    <appender name="emarlog" class="ch.qos.logback.core.rolling.RollingFileAppender">  
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">  
+            <fileNamePattern>logs/spring-boot-consumer.log.%d</fileNamePattern>
+            <MaxHistory>14</MaxHistory>  
+        </rollingPolicy>  
+        <encoder>  
+            <pattern>  
+                <pattern>%date{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </pattern>  
+        </encoder>  
+    </appender>  
+    <root level="info">  
+        <appender-ref ref="emarlog" />  
+    </root>
+    <logger name="health" level="info" additivity="false">  
+        <appender-ref ref="standard" />  
+    </logger>
+    <logger name="throughput" level="info" additivity="false">  
+        <appender-ref ref="standard" />  
+    </logger>      
+</configuration>  
