@@ -72,14 +72,14 @@ public class IntegrationConfigration {
    	public IntegrationFlow fileWritingFlow() {
    	    return IntegrationFlows.from("flowToFileChannel")
    		        .enrichHeaders(h -> h.header("directory", new File(logDirectory)))
-   	            .handleWithAdapter(a -> a.file(m -> m.getHeaders().get("directory")).fileExistsMode(FileExistsMode.APPEND).autoCreateDirectory(true)
+   	            	.handleWithAdapter(a -> a.file(m -> m.getHeaders().get("directory")).fileExistsMode(FileExistsMode.APPEND).autoCreateDirectory(true)
    	            		.fileNameGenerator(m -> {
    	            			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd-hh-mm");
    	            			String date = dateFormat.format(new Date()); 
    	            			return date + "." + logFormat;
    	            		})
-				).get();
-    }
+			).get();
+    	}
 
 	@MessagingGateway(defaultRequestChannel = "flowToFileChannel")
 	public interface FileLogGateway {
@@ -88,7 +88,7 @@ public class IntegrationConfigration {
 
 	@Bean
    	public IntegrationFlow consumerResendFileReadingFlow() {
-    	return IntegrationFlows
+    		return IntegrationFlows
     			.from(sources -> sources.file(new File(logDirectory)).filter(fileFilter()).autoCreateDirectory(true), 
     				  spec -> spec.poller(Pollers.fixedRate(1, TimeUnit.MINUTES).maxMessagesPerPoll(1)).autoStartup(true).id("consumerResend"))
     			.transform(fileToStringTransformer())
@@ -104,15 +104,15 @@ public class IntegrationConfigration {
     					.sendPartialResultOnExpiry(true))
     			.handle(this::messageReProcess)
     			.get();
-    }
+    	}
 
 	private void messageReProcess(Message<?> message) {
-    	String topic = message.getHeaders().get("correlationId").toString();
-    	String reocrds = message.getPayload().toString();
-    	String[] dataBatch = Pattern.compile(commonConfigration.getRecordSeparator()).splitAsStream(reocrds).toArray(String[]::new);
-    	if(StringUtils.isNotBlank(topic) && StringUtils.isNotBlank(reocrds) && commonConfigration.getTopicList().contains(topic)) {
-    		throughput.info("records withs topic {} message size {} resend start", topic, dataBatch.length);
-    		try {
+    		String topic = message.getHeaders().get("correlationId").toString();
+    		String reocrds = message.getPayload().toString();
+    		String[] dataBatch = Pattern.compile(commonConfigration.getRecordSeparator()).splitAsStream(reocrds).toArray(String[]::new);
+    		if(StringUtils.isNotBlank(topic) && StringUtils.isNotBlank(reocrds) && commonConfigration.getTopicList().contains(topic)) {
+    			throughput.info("records withs topic {} message size {} resend start", topic, dataBatch.length);
+    			try {
 				retryTemplate.execute(
 					context -> {
 						Optional<Map.Entry<JedisPool, List<String>>> firstMatchedPool = jedisPoolMap.entrySet().stream().filter(entry -> entry.getValue().contains(topic)).findFirst();
@@ -144,8 +144,8 @@ public class IntegrationConfigration {
 			} catch (Exception e) {
 				throughput.error("records withs topic {} message size {} resend error {}", topic, dataBatch.length, e);
 			}
-    	}
-    }
+    		}
+   	}
 
 	@Bean
 	public ChainFileListFilter<File> fileFilter() {
