@@ -57,10 +57,10 @@ public class RedisConfigration {
 					.splitAsStream(redisInfo)
 					.map(supplierIpPort -> Pattern.compile("-").splitAsStream(supplierIpPort).collect(Collectors.toList()))
 					.filter(adxIpPortGroup -> adxIpPortGroup.size() == 3)
-					.collect(Collectors.groupingBy(adxIpPortGroup -> adxIpPortGroup.get(1) + "," + Integer.parseInt(adxIpPortGroup.get(2)), Collectors.toList()))
-					.entrySet()
-					.stream()
-					.collect(Collectors.toMap(adxIpPortGroup -> new JedisPool(jedisConfig, adxIpPortGroup.getKey().split(",")[0], Integer.parseInt(adxIpPortGroup.getKey().split(",")[1]), timeout), adxIpPortGroup -> adxIpPortGroup.getValue().stream().map(adxIpPortCol -> adxIpPortCol.get(0)).collect(Collectors.toList())));
+					.collect(Collectors.toMap(adxIpPortGroup -> new JedisPool(jedisConfig, adxIpPortGroup.get(1), Integer.parseInt(adxIpPortGroup.get(2)), timeout), adxIpPortGroup -> Collections.singletonList(adxIpPortGroup.get(0)), (existAdx, newAdx) -> {
+						existAdx.addAll(newAdx);
+						return existAdx;
+					}));
 	}
 
 	@Bean
